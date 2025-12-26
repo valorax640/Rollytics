@@ -1,97 +1,165 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Rollytics - Offline Attendance Manager
 
-# Getting Started
+A React Native attendance management app for teachers and college students with class-wise attendance tracking and percentage calculation. 
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+- ✅ Offline attendance management (no permissions required)
+- 📊 Class-wise attendance tracking
+- 📈 Automatic percentage calculation
+- 👥 Student management
+- 📅 Date-wise attendance records
+- 📱 Clean and intuitive UI
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Tech Stack
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- React Native 0.80.1
+- React Navigation v6
+- AsyncStorage for offline data persistence
+- React Native Vector Icons
 
-```sh
-# Using npm
-npm start
+## Folder Structure
 
-# OR using Yarn
-yarn start
+```
+Rollytics/
+├── src/
+│   ├── components/
+│   │   ├── ClassCard.jsx
+│   │   ├── StudentCard.jsx
+│   │   ├── AttendanceItem.jsx
+│   │   └── Header.jsx
+│   ├── screens/
+│   │   ├── HomeScreen.jsx
+│   │   ├── ClassDetailsScreen.jsx
+│   │   ├── TakeAttendanceScreen.jsx
+│   │   ├── AttendanceHistoryScreen.jsx
+│   │   └── StatisticsScreen.jsx
+│   ├── utils/
+│   │   └── storage.js
+│   ├── constants/
+│   │   └── colors.js
+│   └── navigation/
+│       └── AppNavigator.jsx
+├── App.jsx
+├── package.json
+└── README.md
 ```
 
-## Step 2: Build and run your app
+## Installation
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### Prerequisites
 
-### Android
+- Node.js (v18 or higher)
+- npm or yarn
+- React Native development environment setup
+- For iOS: Xcode and CocoaPods
+- For Android: Android Studio and JDK
 
-```sh
-# Using npm
+### Steps
+
+1. **Clone or create the project**
+
+```bash
+npx react-native@0.80.1 init Rollytics --version 0.80.1
+cd Rollytics
+```
+
+2. **Install dependencies**
+
+```bash
+npm install @react-native-async-storage/async-storage@^2.2.0
+npm install @react-native-picker/picker@^2.11.4
+npm install @react-navigation/bottom-tabs@^6.6.1
+npm install @react-navigation/native@^6.1.18
+npm install @react-navigation/native-stack@^6.11.0
+npm install react-native-safe-area-context@^5.6.2
+npm install react-native-screens@^4.18.0
+npm install react-native-vector-icons@^10.3.0
+```
+
+3. **iOS specific setup**
+
+```bash
+cd ios
+pod install
+cd ..
+```
+
+4. **Link Vector Icons (if needed)**
+
+For Android, add to `android/app/build.gradle`:
+
+```gradle
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+```
+
+For iOS, the fonts are automatically linked via CocoaPods.
+
+5. **Replace the files**
+
+Copy all the source files from this repository into your project following the folder structure above.
+
+6. **Run the app**
+
+```bash
+# For Android
 npm run android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# For iOS
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Usage
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Adding a Class
 
-## Step 3: Modify your app
+1. Open the app
+2. Tap the "+" button on the home screen
+3. Enter class name and add students
+4. Save the class
 
-Now that you have successfully run the app, let's make changes!
+### Taking Attendance
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+1. Select a class from the home screen
+2. Tap "Take Attendance"
+3. Mark students as Present/Absent
+4. Save attendance
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Viewing Statistics
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+1. Navigate to the Statistics tab
+2. View overall attendance percentages
+3. Check class-wise performance
 
-## Congratulations! :tada:
+## Package.json Dependencies
 
-You've successfully run and modified your React Native App. :partying_face:
+```json
+{
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-picker/picker": "^2.11.4",
+    "@react-native/new-app-screen": "0.80.1",
+    "@react-navigation/bottom-tabs":  "^6.6.1",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/native-stack": "^6.11.0",
+    "react":  "19.1.0",
+    "react-native": "0.80.1",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.18.0",
+    "react-native-vector-icons": "^10.3.0"
+  }
+}
+```
 
-### Now what?
+## Permissions
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+**This app requires NO permissions! ** All data is stored locally using AsyncStorage.
 
-# Troubleshooting
+## License
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+MIT
 
-# Learn More
+## Support
 
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+For issues and feature requests, please create an issue in the repository.
+```
