@@ -121,6 +121,34 @@ export const getAttendanceByClass = async classId => {
   }
 };
 
+export const updateAttendanceRecord = async (recordId, updatedData) => {
+  try {
+    const attendance = await getAttendance();
+    const index = attendance.findIndex(a => a.id === recordId);
+    if (index !== -1) {
+      attendance[index] = {...attendance[index], ...updatedData};
+      await saveAttendance(attendance);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error updating attendance record:', error);
+    return false;
+  }
+};
+
+export const deleteAttendanceRecord = async recordId => {
+  try {
+    const attendance = await getAttendance();
+    const filtered = attendance.filter(a => a.id !== recordId);
+    await saveAttendance(filtered);
+    return true;
+  } catch (error) {
+    console.error('Error deleting attendance record:', error);
+    return false;
+  }
+};
+
 export const calculateAttendancePercentage = (classStudents, attendanceRecords) => {
   if (!classStudents || classStudents.length === 0) return 0;
   if (!attendanceRecords || attendanceRecords.length === 0) return 0;

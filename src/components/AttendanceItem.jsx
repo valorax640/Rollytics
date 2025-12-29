@@ -1,9 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {COLORS} from '../constants/colors';
 
-const AttendanceItem = ({record, classData}) => {
+const AttendanceItem = ({record, classData, onEdit, onDelete}) => {
   const date = new Date(record.date);
   const presentCount = record.attendance.filter(
     a => a.status === 'present',
@@ -24,8 +24,16 @@ const AttendanceItem = ({record, classData}) => {
             })}
           </Text>
         </View>
-        <View style={styles.percentageContainer}>
-          <Text style={styles.percentage}>{percentage}%</Text>
+        <View style={styles.actions}>
+          <View style={styles.percentageContainer}>
+            <Text style={styles.percentage}>{percentage}%</Text>
+          </View>
+          <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
+            <Icon name="edit" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
+            <Icon name="delete" size={20} color={COLORS.danger} />
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.stats}>
@@ -80,11 +88,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     letterSpacing: 0.2,
   },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   percentageContainer: {
     backgroundColor: `${COLORS.primary}15`,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
+  },
+  actionButton: {
+    padding: 8,
+    borderRadius: 8,
   },
   percentage: {
     fontSize: 17,

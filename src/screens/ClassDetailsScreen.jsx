@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -24,6 +26,8 @@ const ClassDetailsScreen = ({route, navigation}) => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [percentage, setPercentage] = useState(0);
   const [studentStats, setStudentStats] = useState({});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
 
   const loadAttendance = async () => {
     const records = await getAttendanceByClass(classData.id);
@@ -95,6 +99,35 @@ const ClassDetailsScreen = ({route, navigation}) => {
     );
   };
 
+  const handleAddStudent = async () => {
+    if (!newStudentName.trim()) {
+      Alert.alert('Error', 'Please enter student name');
+      return;
+    }
+
+    const newStudent = {
+      id: Date.now().toString(),
+      name: newStudentName.trim(),
+      rollNumber: `R${classData.students.length + 1}`,
+    };
+
+    const updatedStudents = [...classData.students, newStudent];
+    const result = await updateClass(classData.id, {
+      students: updatedStudents,
+    });
+
+    if (result) {
+      classData.students = updatedStudents;
+      setNewStudentName('');
+      setShowAddModal(false);
+      loadAttendance();
+      navigation.setParams({classData: {...classData}});
+      Alert.alert('Success', 'Student added successfully');
+    } else {
+      Alert.alert('Error', 'Failed to add student');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Header 
@@ -137,7 +170,14 @@ const ClassDetailsScreen = ({route, navigation}) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Students</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Students</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddModal(true)}>
+            <Icon name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
         {classData.students.map(student => (
           <StudentCard
             key={student.id}
@@ -148,6 +188,52 @@ const ClassDetailsScreen = ({route, navigation}) => {
         ))}
       </View>
       </ScrollView>
+
+      {/* Add Student Modal */}
+      <Modal
+        visible={showAddModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAddModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add New Student</Text>
+              <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                <Icon name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Student Name</Text>
+              <TextInput
+                style={styles.input}
+                value={newStudentName}
+                onChangeText={setNewStudentName}
+                placeholder="Enter student name"
+                placeholderTextColor={COLORS.textSecondary}
+                autoFocus={true}
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setShowAddModal(false);
+                  setNewStudentName('');
+                }}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addStudentButton}
+                onPress={handleAddStudent}>
+                <Text style={styles.addStudentButtonText}>Add Student</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -244,12 +330,110 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 8,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 16,
     letterSpacing: 0.3,
+  },
+  addButton: {
+    backgroundColor: COLORS.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: COLORS.backgroundDark,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cancelButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  addStudentButton: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  addStudentButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 
