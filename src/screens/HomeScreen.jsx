@@ -26,6 +26,10 @@ const HomeScreen = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [className, setClassName] = useState('');
   const [students, setStudents] = useState('');
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [studentSelectModalVisible, setStudentSelectModalVisible] = useState(false);
+  const [selectedClassForImport, setSelectedClassForImport] = useState(null);
+  const [selectedStudents, setSelectedStudents] = useState([]);
 
   const loadClasses = async () => {
     const data = await getClasses();
@@ -76,6 +80,52 @@ const HomeScreen = ({navigation}) => {
     } else {
       Alert.alert('Error', 'Failed to add class');
     }
+  };
+
+  const handleImportStudents = () => {
+    if (classes.length === 0) {
+      Alert.alert('No Classes', 'There are no existing classes to import students from.');
+      return;
+    }
+    setImportModalVisible(true);
+  };
+
+  const handleClassSelection = (classData) => {
+    setSelectedClassForImport(classData);
+    // Initialize all students as selected
+    setSelectedStudents(classData.students.map(s => ({...s, selected: true})));
+    setImportModalVisible(false);
+    setStudentSelectModalVisible(true);
+  };
+
+  const toggleStudentSelection = (studentId) => {
+    setSelectedStudents(prev =>
+      prev.map(s =>
+        s.id === studentId ? {...s, selected: !s.selected} : s
+      )
+    );
+  };
+
+  const handleConfirmImport = () => {
+    const importedStudents = selectedStudents
+      .filter(s => s.selected)
+      .map(s => s.name)
+      .join('\n');
+    
+    if (importedStudents) {
+      // Append to existing students or replace
+      setStudents(prev => {
+        const existing = prev.trim();
+        if (existing) {
+          return existing + '\n' + importedStudents;
+        }
+        return importedStudents;
+      });
+    }
+    
+    setStudentSelectModalVisible(false);
+    setSelectedClassForImport(null);
+    setSelectedStudents([]);
   };
 
   const handleDeleteClass = classId => {
@@ -171,6 +221,13 @@ const HomeScreen = ({navigation}) => {
                     textAlignVertical="top"
                   />
 
+                  <TouchableOpacity
+                    style={styles.importButton}
+                    onPress={handleImportStudents}>
+                    <Icon name="file-download" size={20} color={COLORS.primary} />
+                    <Text style={styles.importButtonText}>Import from Existing Class</Text>
+                  </TouchableOpacity>
+
                   <View style={styles.modalButtons}>
                     <TouchableOpacity
                       style={[styles.button, styles.cancelButton]}
@@ -192,6 +249,94 @@ const HomeScreen = ({navigation}) => {
             </KeyboardAvoidingView>
           </View>
         </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Import Class Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={importModalVisible}
+        onRequestClose={() => setImportModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.importModalContent}>
+            <Text style={styles.modalTitle}>Select Class to Import From</Text>
+            <ScrollView style={styles.classListContainer}>
+              {classes.map((classItem) => (
+                <TouchableOpacity
+                  key={classItem.id}
+                  style={styles.classImportItem}
+                  onPress={() => handleClassSelection(classItem)}>
+                  <View style={styles.classImportInfo}>
+                    <Text style={styles.classImportName}>{classItem.name}</Text>
+                    <Text style={styles.classImportStudentCount}>
+                      {classItem.students.length} student{classItem.students.length !== 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-right" size={24} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.singleCancelButton}
+              onPress={() => setImportModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Student Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={studentSelectModalVisible}
+        onRequestClose={() => setStudentSelectModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.importModalContent}>
+            <Text style={styles.modalTitle}>Select Students to Import</Text>
+            <Text style={styles.modalSubtitle}>
+              From: {selectedClassForImport?.name}
+            </Text>
+            <ScrollView style={styles.studentListContainer}>
+              {selectedStudents.map((student) => (
+                <TouchableOpacity
+                  key={student.id}
+                  style={styles.studentSelectItem}
+                  onPress={() => toggleStudentSelection(student.id)}>
+                  <View style={styles.studentSelectInfo}>
+                    <View style={[
+                      styles.checkbox,
+                      student.selected && styles.checkboxSelected
+                    ]}>
+                      {student.selected && (
+                        <Icon name="check" size={18} color="#fff" />
+                      )}
+                    </View>
+                    <Text style={styles.studentSelectName}>{student.name}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => {
+                  setStudentSelectModalVisible(false);
+                  setSelectedClassForImport(null);
+                  setSelectedStudents([]);
+                }}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.addButton]}
+                onPress={handleConfirmImport}>
+                <Text style={styles.addButtonText}>
+                  Import ({selectedStudents.filter(s => s.selected).length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -296,6 +441,110 @@ const styles = StyleSheet.create({
   textArea: {
     height: 120,
   },
+  importButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    borderStyle: 'dashed',
+    marginBottom: 20,
+    backgroundColor: COLORS.background,
+  },
+  importButtonText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
+    letterSpacing: 0.2,
+  },
+  importModalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: COLORS.card,
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+    alignSelf: 'center',
+    marginTop: 'auto',
+    marginBottom: 'auto',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  classListContainer: {
+    maxHeight: 400,
+    marginBottom: 20,
+  },
+  classImportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  classImportInfo: {
+    flex: 1,
+  },
+  classImportName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  classImportStudentCount: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  studentListContainer: {
+    maxHeight: 350,
+    marginBottom: 20,
+  },
+  studentSelectItem: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  studentSelectInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  checkboxSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  studentSelectName: {
+    fontSize: 15,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -309,6 +558,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   cancelButton: {
+    backgroundColor: COLORS.backgroundDark,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+  },
+  singleCancelButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
     backgroundColor: COLORS.backgroundDark,
     borderWidth: 2,
     borderColor: COLORS.border,
